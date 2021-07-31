@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>记账本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 62.5%;
+
+        }
+
+        body {
+            background-color: #f1f1f1;
+        }
+
+        .container {
+            width: 400px;
+            padding: 50px;
+            margin: 0 auto;
+
+
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container>p:nth-of-type(2) {
+            line-height: 4rem;
+            font-size: 3.2rem;
+
+        }
+
+        section {
+            height: 80px;
+            padding: 10px;
+            background-color: white;
+            margin-top: 2rem;
+            box-shadow: 1px 1px 3px lightgray;
+        }
+
+        section .item {
+            width: 50%;
+            height: 100%;
+            float: left;
+            border-right: 1px solid lightgray;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: center;
+        }
+
+        section .zhichu {
+            border: 0;
+        }
+
+        section .item p {
+            width: 100%;
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 900;
+        }
+
+        h2 {
+            line-height: 4rem;
+            font-size: 1.8rem;
+            border-bottom: 1px solid lightgray;
+            margin-top: 1.5rem;
+        }
+
+        .show {
+            line-height: 3.6rem;
+            font-size: 1.6rem;
+
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            height: 3rem;
+            font-size: 1.2rem;
+            text-indent: 2.4rem;
+        }
+
+        #add {
+            height: 3rem;
+            line-height: 3rem;
+            font-size: 1.4rem;
+            text-align: center;
+            margin-top: 2rem;
+            color: white;
+            background-color: rgb(196, 88, 68);
+            opacity: .8;
+        }
+
+        #add:hover {
+            cursor: pointer;
+        }
+
+        li {
+            height: 3rem;
+            background-color: white;
+            margin: 1rem auto;
+            font-size: 1.2rem;
+            position: relative;
+
+        }
+
+        li span {
+            float: left;
+            width: 46%;
+            height: 3rem;
+            line-height: 3rem;
+        }
+
+        li .name {
+            margin-left: 2%;
+        }
+
+        li .money {
+            text-align: right;
+            color: skyblue;
+            font-weight: 900;
+        }
+
+        li .del {
+            width: 2rem;
+            height: 2rem;
+            line-height: 2rem;
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            background-color: rgb(196, 88, 68);
+            position: absolute;
+            top: .5rem;
+            left: -2rem;
+            display: none;
+        }
+
+        li:hover .del {
+            display: block;
+        }
+
+        .alert {
+            width: 300px;
+            height: 4rem;
+            font-size: 1.8rem;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 38%;
+            text-align: center;
+            display: none;
+            line-height: 4rem;
+            opacity: .8;
+
+        }
+
+        #error {
+            background-color: rgb(196, 88, 68);
+
+            box-shadow: 0 0 5px tomato;
+        }
+
+        #success {
+            background-color: skyblue;
+            box-shadow: 0 0 5px skyblu;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>记账本</h1>
+        <p style="margin-top: 2rem;">您的余额</p>
+        <p>￥<span id="yue">0</span></p>
+        <section>
+            <div class="item shouru">
+                <p>收入</p>
+                <p style="color: skyblue;">￥<span id="shouru">0.00</span></p>
+            </div>
+            <div class="item zhichu">
+                <p>支出</p>
+                <p style="color: tomato;">￥<span id="zhichu">0.00</span></p>
+            </div>
+        </section>
+        <h2>历史记录</h2>
+        <ul>
+            <!-- <li style="border-right: 4px solid skyblue;">
+               <span class="name">投资</span>
+               <span class="money">-1000.00</span>
+               <span class="del">×</span>
+            </li> -->
+        </ul>
+        <h2>添加新交易</h2>
+        <p class="show">交易名称</p>
+        <input id="name" type="text" placeholder="请输入名称">
+        <p class="show">金额（支出-负数，收入+正数）</p>
+        <input id="money" type="text" placeholder="请输入金额">
+        <div id="add">添加新交易</div>
+        <p id="error" class="alert">请输入正确信息！</p>
+        <p id="success" class="alert">添加成功</p>
+    </div>
+</body>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    //创建一个类，操作关于本地存储
+    function Record() {
+        if (!localStorage.record) {
+            //本地存储自能存储简易数据，基本数据类型
+            //空数组字符串
+            localStorage.record = '[]';
+        }
+    }
+    //获取数组内容
+    Record.prototype.getRecords = function () {
+        //转化成数组
+        return JSON.parse(localStorage.record);
+    }
+    // data ={
+    //     type:"-",
+    //     name:"搓澡",
+    //     money:"30"
+    // }
+    //添加新数据
+    Record.prototype.addData = function (data) {
+        var arr = this.getRecords();
+        arr.push(data)
+        //转回字符串添加到本地存储
+        localStorage.record = JSON.stringify(arr);
+    }
+    //清空所有数据
+    Record.prototype.clear = function () {
+        localStorage.clear();
+    }
+    //计算总收入
+    Record.prototype.shouru = function () {
+        var total = 0;
+        //1、拿到所有数据
+        var arr = this.getRecords();
+        //2、筛选出 type==="+"的数据
+        var newArr = [];
+        arr.forEach(function (item) {
+            if (item.type === "+") {
+                newArr.push(item);
+            }
+        })
+        //3、将筛选出来的数据进行累加
+        newArr.forEach(function (item) {
+            total += item.money / 1;
+        })
+        return total;
+    }
+    //计算总支出
+    Record.prototype.zhichu = function () {
+        var total = 0;
+        //1、拿到所有数据
+        var arr = this.getRecords();
+        //2、筛选出 type==="+"的数据
+        var newArr = [];
+        arr.forEach(function (item) {
+            if (item.type === "-") {
+                newArr.push(item);
+            }
+        })
+        //3、将筛选出来的数据进行累加
+        newArr.forEach(function (item) {
+            total += item.money / 1;
+        })
+        return total;
+    }
+    //删除数据
+    Record.prototype.delData = function (index) {
+        var arr = this.getRecords();
+        arr.splice(index, 1);
+        localStorage.record = JSON.stringify(arr);
+    }
+    // 1、根据和缓存显示历史记录
+    //1.2创建Recor对象
+    var record = new Record();
+
+    //1.2获取所有历史记录 并添加对应li
+    record.getRecords().forEach(function (item) {
+        addLi(item);
+    });
+    //显示 收入 支出 余额
+    setMoney();
+
+
+    //2、点击添加按钮产生对应的操作
+
+    //2.0弹窗提示
+    function error() {
+        $(".alert").hide();
+        $("#error").fadeIn(300).delay(1000).fadeOut(300);
+    }
+    function success() {
+        $(".alert").hide();
+        $("#success").fadeIn(300).delay(1000).fadeOut(300);
+    }
+    $("#add").click(function () {
+        //2.1判断输入框内容
+        if (isAlert()) {
+            error();
+            return;
+        }
+        //2.2创建li，填充li
+        var data = {
+            type: $("#money").val().slice(0, 1),
+            name: $("#name").val(),
+            money: $("#money").val().slice(1)
+        }
+        addLi(data)
+        //2.3对缓存数据 进行添加
+        record.addData(data);
+        //2.4修改收入、支出、余额
+        setMoney();
+        //2.5输入框内容清空
+        $("input").val("");
+        //2.6显示成功提醒
+        success();
+    })
+
+    //2.1 用户输入的内容是否合理
+    function isAlert() {
+        var reg = /^[\+\-](\d+|\d+\.\d{1,2})$/;
+        return ($("#name").val() === "" || $("#money").val() === "" || !reg.test($("#money").val()));
+    }
+    //2.2添加li标签
+    // data ={
+    //     type:"-",
+    //     name:"搓澡",
+    //     money:"30"
+    // }
+    function addLi(data) {
+        $(`
+            <li style="border-right: 4px solid ${data.type === "+" ? "skyblue" : "tomato"};">
+               <span class="name">${data.name}</span>
+               <span class="money" style="color:${data.type === "+" ? "skyblue" : "tomato"}">${data.type + data.money}</span>
+               <span class="del">×</span>
+            </li>
+            `).appendTo($("ul")).find(".del").click(function () {
+            //删除
+            //删除数据
+            var index = $("li").index($(this).parent())
+            record.delData(index);
+            setMoney();
+            //删除UI
+            $(this).parent().remove();
+
+        });
+    }
+    //2.4修改收入、支出、余额
+    function setMoney() {
+        $("#shouru").html(record.shouru());
+        $("#zhichu").html(record.zhichu());
+        $("#yue").html(record.shouru() - record.zhichu());
+    }
+
+
+
+
+</script>
+
+</html>
+<!-- 数据模型
+localstorage.record = [{
+    type:"+",
+    name:"项目名称"，
+    money:"5000000"
+}] -->
