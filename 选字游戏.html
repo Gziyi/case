@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选字游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        html {
+            font-size: 62.5%;
+        }
+        body {
+            background-color: #ccc;
+        }
+        .container {
+            width: 400px;
+            height: 600px;
+            margin: 0 auto;
+            overflow: hidden;
+            box-shadow: 0 0 3px gray;;
+        }
+        .top {
+            height: 30px;
+            margin-top: 50px;
+            font-size: 2rem;
+        }
+        .top #time {
+            float: left;
+            margin-left: 5px;
+        }
+        .top #score {
+            float: right;
+            margin-right: 5px;
+        }
+        #showWord {
+            text-align: center;
+            line-height: 20rem;
+            font-size: 15rem;
+            margin-top: 50px;
+        }
+        .rule {
+            font-size: 2rem;
+            text-align: center;
+            margin-top: 30px;
+        }
+        ul {
+            height: 5rem;
+            display: flex;
+            justify-content: space-around;
+            margin-top: 100px;
+        }
+        li {
+            width: 5rem;
+            height: 5rem;
+            line-height: 5rem;
+            font-size: 5rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        <p class="top">
+            <span id="time">剩余时间：{{myTime}}</span>
+            <span id="score">得分：{{score}}</span>
+        </p >
+        <p id="showWord" :style=" 'color: ' + colors[colorIndex] ">{{words[wordIndex]}}</p >
+        <p class="rule">根据上面字的颜色，在下面选择正确的字</p >
+        <ul>
+            <li v-for="(word, index) in showWords"
+                :style=" 'color: ' + showColors[index] "
+                @click="myclick(words.indexOf(word))">{{word}}</li>
+        </ul>
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+<script>
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                colors: ["black", "red", "green", "blue", "gold"],
+                words: ["黑","红","绿","蓝","黄"],
+                colorIndex: 0,
+                wordIndex: 0,
+                showColors: [],
+                showWords: [],
+                score: 0,
+                time: 20,
+                timer: null
+            }
+        },
+        methods: {
+            rand(min, max) {
+                return Math.floor(Math.random() * (max-min) + min);
+            },
+            setView() {
+                this.colorIndex = this.rand(0,5)
+                this.wordIndex = this.rand(0,5)
+                this.showColors = [...this.colors].sort((a,b) => Math.random()-0.5)
+                this.showWords = [...this.words].sort((a,b) => Math.random()-0.5)
+            },
+            again() {
+                this.setView();
+                this.score= 0,
+                this.time= 20,
+                this.timer= null
+            },
+            myclick(index) {
+                if (this.colorIndex === index) {
+                    //点对了
+                    this.score ++;
+                    if (this.score === 1) {
+                        clearInterval(this.timer);
+                        this.timer = setInterval(() => {
+                            this.time -= 0.05;
+                            if (this.time <= 0) {
+                                clearInterval(this.timer);
+                                alert("恭喜你得分" + this.score);
+                                this.again();
+                            } 
+                        }, 50)
+                    }
+                    this.setView();
+                }
+            }   
+        },
+        computed: {
+            myTime() {
+                return this.time.toFixed(2);
+            }
+        },
+        mounted() {
+            this.setView();
+        }
+    })
+</script>
+</html>
