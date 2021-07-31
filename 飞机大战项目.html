@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飞机大战项目</title>
+    <link rel="stylesheet" href="css/reset.css">
+    <style>
+        html {
+            font-size: 62.5%;
+        }
+
+        /* container wrap */
+        .bg {
+            width: 320px;
+            height: 568px;
+            background-image: url(img/background.png);
+            background-size: 100% 100%;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+
+
+        }
+
+        .bg .move {
+            position: absolute;
+            left: auto;
+            bottom: 0;
+            width: 66px;
+            height: 82px;
+            overflow: hidden;
+
+        }
+
+        .bg .enemy {
+            width: 38px;
+            height: 34px;
+            background-image: url(img/enemy1.png);
+            position: absolute;
+            top: -34px;
+
+        }
+
+        .bg .bullet {
+            width: 6px;
+            height: 14px;
+            background-image: url(img/bullet1.png);
+            position: absolute;
+        }
+
+        #score {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            font-size: 2rem;
+        }
+
+        #start,
+        #end {
+            width: 80%;
+            background-color: lightgray;
+            background-position-x: 1px 1px 3px gray;
+            border-radius: 8px;
+            position: absolute;
+            left: 10%;
+            top: 150px;
+            padding: 40px 0;
+
+
+        }
+
+        .ipt,
+        .btn {
+            width: 80%;
+            margin: 0 auto;
+            height: 3rem;
+            line-height: 30px;
+            font-size: 2rem;
+            border-bottom: 2px solid black;
+
+        }
+
+        .ipt input {
+            display: block;
+            width: 94%;
+            height: 100%;
+            margin-left: 3%;
+            text-align: center;
+        }
+
+        .btn {
+            border: 0;
+            text-align: center;
+            margin-top: 2rem;
+            border: 2px solid black;
+            cursor: pointer;
+        }
+
+        #end p {
+            text-align: center;
+            font-size: 2.4rem;
+            line-height: 3rem;
+        }
+        #end .type{
+            display: flex;
+            text-align: left;
+            margin: 1.5rem auto;
+          
+            width: 60%;
+           
+        }
+        #end .type span{
+            width: 50%;
+            line-height: 2rem;
+            font-size: 1.4rem;
+        }
+
+        #end ul {
+            margin: 1.5rem auto;
+            width: 60%;
+        }
+
+        #end ul li {
+
+            display: flex;
+        }
+
+        #end ul li span{
+            width: 50%;
+            line-height: 2rem;
+            font-size: 1.4rem;
+
+        }
+
+        #end {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg">
+        <div class="move">
+            <img src="img/herofly.png" alt="">
+        </div>
+        <!-- 只作为管理父级。不作为定位父级 -->
+        <div id="enemy">
+            <!-- <div class="enemy"></div> -->
+        </div>
+        <div id="bullet">
+            <!-- <div class="bullet"></div> -->
+        </div>
+        <p id="score"></p>
+
+        <div id="start">
+            <div class="ipt">
+                <input id="nick" type="text" placeholder="请输入昵称">
+            </div>
+            <div class="btn" onclick="beginGame()">开始</div>
+        </div>
+        <div id="end">
+            <p>游戏结束</p>
+            <p class="type">
+               
+                    <span>名次</span>
+                    <span>姓名</span>
+                    <span>成绩</span>
+               
+            </p>
+            <ul id="phb">
+               
+                <!-- <li>
+                <span>1</span>
+                <span>leo</span>
+                <span>10086</span>
+            </li> -->
+
+            </ul>
+            <div class="btn" onclick="again()">再来一次</div>
+        </div>
+    </div>
+</body>
+<script src="js/public.js"></script>
+<script src="js/bg.js"></script>
+<script src="js/move.js"></script>
+<script src="js/enemy.js"></script>
+<script src="js/bullet.js"></script>
+<script src="js/check.js"></script>
+<script>
+    // 获取元素
+    var dBg = document.getElementsByClassName("bg")[0];
+    var nickP = document.getElementById("nick");
+    var dStart = document.getElementById("start");
+    var dEnd = document.getElementById("end");
+    var phbUl = document.getElementById("phb");
+    // 全局变量
+    var timer = null;
+    //判断是否是移动端
+    if (isPhone()) {
+        //移动
+        sw = window.innerWidth;
+        sh = window.innerHeight;
+    }
+    // 再次确认bg的宽高
+    dBg.style.width = sw + 'px';
+    dBg.style.height = sh + 'px';
+    // 开始游戏
+    function beginGame() {
+        if (nickP.value === "") {
+            alert("请输入昵称");
+            return;
+        }
+        dStart.style.display = "none";
+        // nickP.value="";
+        clearInterval(timer);
+        timer = setInterval(function () {
+            // 1、背景的滚动
+            bgMove();
+            // 2、英雄的操作
+            heroMove();
+            // 3、敌机的移动
+            enemyMove();
+            // 4、子弹移动
+            bulletMove()
+            //5 、碰撞检测
+            check();
+
+
+        }, 30)
+
+    }
+    // 游戏结束
+    function gameOver() {
+        dEnd.style.display = "block";
+        // 处理排行榜
+        setPhb();
+
+    }
+
+    function setPhb() {
+        // 只显示排行榜的前三名
+        if (!localStorage.phb) {
+            // 初始化排行榜信息
+            localStorage.phb = '[]';
+        }
+        var phb = JSON.parse(localStorage.phb);
+        var index = -1;
+        for (var i = 0; i < phb.length; i++) {
+            var obj = phb[i];
+            if (nickP.value === obj.nick) {
+                // 用户存在
+                index = i;
+
+            }
+
+        }
+        if (index === -1) {
+            // 不存在
+            phb.push({
+                nick: nickP.value,
+                score: score
+            })
+        } else {
+            // 存在
+            if (phb[index].score <= score) {
+                // 历史成绩小于本次成绩
+                phb[index].score = score;
+
+            }
+        }
+        // 将排行榜信息重新存储到本地
+        localStorage.phb = JSON.stringify(phb);
+        // 显示排行榜
+        // 2.1排序
+        phb.sort(function (a, b) {
+            return b.score - a.score;
+        })
+        // 2.2 dom 
+       phbUl.innerHTML="";
+        for (var i = 0; i < phb.length; i++) {
+            if (i >= 3) {
+                break;
+            }
+            var li = document.createElement("li");
+            // li.innerHTML='';
+            li.innerHTML = `
+                <span>${i + 1}</span>
+                <span>${phb[i].nick}</span>
+                <span>${phb[i].score}</span>
+        `;  
+        
+            phbUl.appendChild(li);
+
+        }
+
+    }
+    function again() {
+        dEnd.style.display = "none";
+        dStart.style.display = "block";
+        dEnemy.innerHTML = "";
+        dBullet.innerHTML = "";
+        setHeroPosition();
+        score = 0;
+        p.innerHTML = "得分:0";
+
+    }
+
+
+
+
+
+</script>
+
+</html>
+<!-- 1、游戏窗口 pc:320*568 phone:窗口大小 代码：html+css div 背景图 size100% animation;js进行是否PC端的判断 -->
